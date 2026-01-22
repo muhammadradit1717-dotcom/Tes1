@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Game Tebak Nama — Hendra · Aryo · Aswan</title>
+  <style>
+    :root{
+      --bg:#0f1724;
+      --card:#0b1020;
+      --accent:#7c5cff;
+      --accent-2:#00d4ff;
+      --muted:#b8c0d6;
+      --success:#3ee3a9;
+      --danger:#ff6b6b;
+      --glass: rgba(255,255,255,0.04);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: radial-gradient(1200px 600px at 10% 10%, rgba(124,92,255,0.12), transparent),
+                  radial-gradient(900px 400px at 95% 90%, rgba(0,212,255,0.06), transparent),
+                  var(--bg);
+      color: #e6eef8;
+      -webkit-font-smoothing:antialiased;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+      gap:20px;
+      flex-direction:column;
+    }
+
+    .container{
+      width:100%;
+      max-width:920px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
+      border-radius:16px;
+      padding:20px;
+      box-shadow: 0 6px 30px rgba(2,6,23,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+      display:grid;
+      grid-template-columns: 1fr 360px;
+      gap:20px;
+      align-items:start;
+    }
+
+    @media (max-width:900px){
+      .container{grid-template-columns:1fr; padding:16px}
+    }
+
+    header{
+      grid-column:1 / -1;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    h1{margin:0;font-size:1.15rem;letter-spacing:0.4px}
+    .subtitle{color:var(--muted); font-size:0.92rem}
+
+    .game{
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.02));
+      border-radius:12px;
+      padding:18px;
+      min-height:340px;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      align-items:stretch;
+    }
+
+    .card{
+      background:var(--card);
+      border-radius:10px;
+      padding:14px;
+      box-shadow: 0 4px 18px rgba(2,6,23,0.5);
+    }
+
+    .masked{
+      font-family: "Courier New", monospace;
+      font-size:2.25rem;
+      letter-spacing:8px;
+      text-align:center;
+      color:var(--muted);
+      user-select:none;
+      padding:18px 8px;
+    }
+
+    .controls{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    input[type="text"]{
+      flex:1;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,0.04);
+      background:var(--glass);
+      color:inherit;
+      outline:none;
+    }
+    button{
+      background:linear-gradient(90deg,var(--accent),var(--accent-2));
+      border:none;
+      color:white;
+      padding:10px 14px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:600;
+      box-shadow: 0 6px 18px rgba(124,92,255,0.16);
+    }
+    button.ghost{
+      background:transparent;
+      border:1px solid rgba(255,255,255,0.04);
+      color:var(--muted);
+      box-shadow:none;
+      font-weight:600;
+    }
+    .small{
+      padding:8px 10px;
+      font-size:0.95rem;
+    }
+
+    .meta{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .badge{
+      background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      padding:8px 12px;
+      border-radius:999px;
+      color:var(--muted);
+      font-weight:700;
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      font-size:0.95rem;
+    }
+    .timer{
+      font-weight:800;
+      color:var(--accent-2);
+      font-family: Inter, sans-serif;
+    }
+
+    .right{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .panel{
+      background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(0,0,0,0.02));
+      border-radius:12px;
+      padding:14px;
+    }
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:12px;
+    }
+    .stat{
+      background:linear-gradient(90deg, rgba(255,255,255,0.02), transparent);
+      padding:10px;
+      border-radius:8px;
+      text-align:center;
+    }
+    .stat .num{font-size:1.25rem; font-weight:800}
+    .hint-list{display:flex; gap:8px; flex-wrap:wrap}
+
+    .message{
+      padding:10px;
+      border-radius:8px;
+      text-align:center;
+      font-weight:700;
+    }
+    .message.success{background:linear-gradient(90deg, rgba(62,227,169,0.12), rgba(62,227,169,0.04)); color:var(--success)}
+    .message.fail{background:linear-gradient(90deg, rgba(255,107,107,0.08), rgba(255,107,107,0.02)); color:var(--danger)}
+
+    footer.small{
+      font-size:0.85rem;
+      color:var(--muted);
+      text-align:center;
+      grid-column:1 / -1;
+    }
+
+    /* animations */
+    .shake{
+      animation: shake 420ms;
+    }
+    @keyframes shake{
+      0%{transform:translateX(0)}
+      25%{transform:translateX(-8px)}
+      50%{transform:translateX(8px)}
+      75%{transform:translateX(-6px)}
+      100%{transform:translateX(0)}
+    }
+
+    .glow{
+      box-shadow: 0 6px 30px rgba(124,92,255,0.28), 0 0 40px rgba(0,212,255,0.06);
+    }
+
+    /* small helper */
+    .muted{color:var(--muted)}
+    .center{text-align:center}
+  </style>
+</head>
+<body>
+  <canvas id="confetti" style="position:fixed;left:0;top:0;pointer-events:none;z-index:9999;"></canvas>
+
+  <div class="container" role="application" aria-label="Game Tebak Nama">
+    <header>
+      <div>
+        <h1>Game Tebak Nama</h1>
+        <div class="subtitle">Tebak salah satu dari tiga nama: <strong>Hendra</strong>, <strong>Aryo</strong>, <strong>Aswan</strong></div>
+      </div>
+      <div class="meta">
+        <div class="badge">Ronde: <span id="round">1</span></div>
+        <div class="badge">Nyawa: <span id="lives">3</span></div>
+      </div>
+    </header>
+
+    <main class="game card" aria-live="polite">
+      <div class="card" aria-hidden="false">
+        <div class="masked" id="masked">••••••</div>
+        <div class="center muted">Petunjuk: <span id="clue">-</span></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <div style="flex:1">
+            <label class="muted" for="guess">Ketik tebakan</label>
+            <input id="guess" autocomplete="off" placeholder="Ketik nama di sini — tekan Enter atau Tebak" />
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button id="submit" class="small">Tebak</button>
+            <button id="hint" class="ghost small">Hint (tampilkan 1 huruf)</button>
+            <button id="skip" class="ghost small">Lewati</button>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+          <div class="muted">Waktu tersisa: <span class="timer" id="timer">20</span>s</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div id="messageBox" style="min-width:160px"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+          <div class="muted">Skor: <strong id="score">0</strong></div>
+          <div class="muted">Streak: <strong id="streak">0</strong></div>
+          <div class="muted">Tinggi: <strong id="best">0</strong></div>
+        </div>
+      </div>
+
+      <div class="card muted small center">
+        Tips: Gunakan tombol Hint untuk menampilkan 1 huruf, Lewati untuk lanjut (dengan penalti), tekan Enter untuk mengirim.
+      </div>
+
+      <footer class="small">
+        Dibuat untukmu — mainkan sebentar, tebakan yang benar memberi poin +10, hint -2, skip -4, salah -1 dan kehilangan nyawa.
+      </footer>
+    </main>
+
+    <aside class="right">
+      <div class="panel card">
+        <h3 style="margin:0 0 8px 0">Statistik & Kontrol</h3>
+        <div class="stats">
+          <div class="stat">
+            <div class="muted">Nama Tersisa</div>
+            <div class="num" id="remaining">3</div>
+          </div>
+          <div class="stat">
+            <div class="muted">Total Ronde</div>
+            <div class="num" id="totalRounds">0</div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px">
+          <div class="muted">Daftar nama (rahasia)</div>
+          <div style="display:flex;gap:8px;margin-top:8px" class="hint-list" aria-hidden="true">
+            <div class="badge">Hendra</div>
+            <div class="badge">Aryo</div>
+            <div class="badge">Aswan</div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button id="restart" class="ghost small">Reset Game</button>
+          <button id="new" class="small">Mulai Baru</button>
+        </div>
+      </div>
+
+      <div class="panel card center muted small">
+        Petunjuk singkat: Nama-nama adalah orang — gunakan intuisi, keyboard, dan cepat sebelum waktunya habis.
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    // Game data
+    const NAMES = ["HENDRA", "ARYO", "ASWAN"]; // canonical answers (uppercase)
+    // state
+    let namesPool = [];
+    let current = null;
+    let masked = "";
+    let revealedIndices = new Set();
+    let timer = null;
+    let timeLeft = 20;
+    let lives = 3;
+    let round = 0;
+    let score = 0;
+    let streak = 0;
+    let best = Number(localStorage.getItem('bestScore')||0);
+    let totalRounds = 0;
+
+    // elements
+    const maskedEl = document.getElementById('masked');
+    const clueEl = document.getElementById('clue');
+    const guessEl = document.getElementById('guess');
+    const submitBtn = document.getElementById('submit');
+    const hintBtn = document.getElementById('hint');
+    const skipBtn = document.getElementById('skip');
+    const timerEl = document.getElementById('timer');
+    const livesEl = document.getElementById('lives');
+    const roundEl = document.getElementById('round');
+    const scoreEl = document.getElementById('score');
+    const streakEl = document.getElementById('streak');
+    const bestEl = document.getElementById('best');
+    const remainingEl = document.getElementById('remaining');
+    const messageBox = document.getElementById('messageBox');
+    const totalRoundsEl = document.getElementById('totalRounds');
+    const restartBtn = document.getElementById('restart');
+    const newBtn = document.getElementById('new');
+
+    bestEl.textContent = best;
+
+    // initialize
+    function resetPool(){
+      namesPool = shuffleArray([...NAMES]);
+      remainingEl.textContent = namesPool.length;
+    }
+
+    function startGame(){
+      resetPool();
+      lives = 3;
+      round = 0;
+      score = 0;
+      streak = 0;
+      totalRounds = 0;
+      updateUI();
+      nextRound();
+    }
+
+    function updateUI(){
+      livesEl.textContent = lives;
+      roundEl.textContent = Math.max(1, round);
+      scoreEl.textContent = score;
+      streakEl.textContent = streak;
+      bestEl.textContent = best;
+      remainingEl.textContent = namesPool.length;
+      totalRoundsEl.textContent = totalRounds;
+    }
+
+    function nextRound(){
+      if(timer) clearInterval(timer);
+      if(namesPool.length === 0){
+        // refill for replay but keep scores
+        resetPool();
+      }
+      current = namesPool.pop();
+      totalRounds++;
+      round++;
+      revealedIndices = new Set();
+      masked = current.replace(/[A-Z]/g, '•'); // bullet for each letter
+      // provide a clue: length and first letter (hidden) / or category
+      clueEl.textContent = `Panjang ${current.length} huruf. (Nama orang)`;
+      maskedEl.textContent = maskedWithSpaces(masked);
+      timeLeft = 20;
+      timerEl.textContent = timeLeft;
+      guessEl.value = '';
+      guessEl.focus();
+      playTone(880, 0.05);
+      updateUI();
+      messageBox.innerHTML = '';
+      timer = setInterval(() => {
+        timeLeft--;
+        if(timeLeft <= 0){
+          clearInterval(timer);
+          onTimeUp();
+        }
+        timerEl.textContent = timeLeft;
+      }, 1000);
+    }
+
+    function onTimeUp(){
+      showMessage(`Waktu habis! Jawaban: ${current}`, 'fail', 2200);
+      wrongAnswer(true);
+    }
+
+    function submitGuess(){
+      const val = guessEl.value.trim().toUpperCase();
+      if(!val) return shake(guessEl);
+      if(val === current){
+        correctAnswer();
+      } else {
+        wrongAnswer(false);
+      }
+    }
+
+    function correctAnswer(){
+      clearInterval(timer);
+      playConfetti();
+      playTone(1200, 0.08);
+      showMessage('Benar! +10 poin', 'success', 1800);
+      score += 10 + Math.max(0, timeLeft - 5); // bonus for speed
+      streak++;
+      if(score > best){ best = score; localStorage.setItem('bestScore', best); }
+      updateUI();
+      setTimeout(nextRound, 1200);
+    }
+
+    function wrongAnswer(byTimeout){
+      clearInterval(timer);
+      playTone(220, 0.09);
+      streak = 0;
+      score = Math.max(0, score - 1);
+      lives--;
+      showMessage(byTimeout ? `Kalah ronde — -1 poin` : `Salah! -1 poin`, 'fail', 1600);
+      if(lives <= 0){
+        gameOver();
+      } else {
+        updateUI();
+        setTimeout(nextRound, 900);
+      }
+    }
+
+    function hint(){
+      if(revealedIndices.size >= current.length){
+        showMessage('Semua huruf sudah terlihat', 'fail', 1600);
+        return;
+      }
+      // reveal one unrevealed index
+      const indices = [];
+      for(let i=0;i<current.length;i++){
+        if(!revealedIndices.has(i)) indices.push(i);
+      }
+      const pick = indices[Math.floor(Math.random()*indices.length)];
+      revealedIndices.add(pick);
+      masked = masked.split('').map((ch,idx)=> revealedIndices.has(idx) ? current[idx] : '•').join('');
+      maskedEl.textContent = maskedWithSpaces(masked);
+      score = Math.max(0, score - 2);
+      showMessage('Hint ditampilkan (-2 poin)', 'success', 1200);
+      playTone(660, 0.04);
+      updateUI();
+    }
+
+    function skip(){
+      clearInterval(timer);
+      playTone(200, 0.05);
+      showMessage(`Lewati — Jawaban: ${current} (-4 poin)`, 'fail', 1400);
+      score = Math.max(0, score - 4);
+      streak = 0;
+      totalRounds++;
+      updateUI();
+      setTimeout(() => {
+        if(lives <= 0){ gameOver(); } else nextRound();
+      }, 1100);
+    }
+
+    function gameOver(){
+      playTone(120, 0.08);
+      showMessage(`Game Over — Skor akhir: ${score}`, 'fail', 3000);
+      // reset small bits but keep best
+      setTimeout(()=> {
+        startGame();
+      }, 3200);
+    }
+
+    // utilities
+    function maskedWithSpaces(s){
+      return s.split('').join(' ');
+    }
+
+    function shuffleArray(a){
+      for(let i=a.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function showMessage(text, type='success', timeout=1500){
+      messageBox.innerHTML = `<div class="message ${type}">${text}</div>`;
+      if(timeout>0){
+        setTimeout(()=> {
+          if(messageBox.firstChild) messageBox.innerHTML = '';
+        }, timeout);
+      }
+    }
+
+    function shake(el){
+      el.classList.remove('shake');
+      void el.offsetWidth;
+      el.classList.add('shake');
+    }
+
+    // keyboard support
+    guessEl.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter') submitGuess();
+      if(e.key === 'Escape') { guessEl.value=''; }
+    });
+
+    submitBtn.addEventListener('click', submitGuess);
+    hintBtn.addEventListener('click', hint);
+    skipBtn.addEventListener('click', skip);
+    restartBtn.addEventListener('click', () => {
+      if(confirm('Reset permainan? Semua skor dan progress akan direset.')) {
+        localStorage.removeItem('bestScore');
+        best = 0;
+        startGame();
+      }
+    });
+    newBtn.addEventListener('click', startGame);
+
+    // audio (simple oscillator beep)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playTone(freq=440, duration=0.05){
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = 'sine';
+      o.frequency.value = freq;
+      g.gain.value = 0.0001;
+      o.connect(g);
+      g.connect(audioCtx.destination);
+      const now = audioCtx.currentTime;
+      g.gain.exponentialRampToValueAtTime(0.12, now + 0.01);
+      o.start(now);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+      o.stop(now + duration + 0.02);
+    }
+
+    // Confetti implementation (simple)
+    const confettiCanvas = document.getElementById('confetti');
+    const C = confettiCanvas.getContext('2d');
+    let confettiParticles = [];
+    function resizeCanvas(){
+      confettiCanvas.width = window.innerWidth;
+      confettiCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function playConfetti(){
+      // create 80 particles
+      const count = 60;
+      for(let i=0;i<count;i++){
+        confettiParticles.push({
+          x: window.innerWidth/2 + (Math.random()-0.5)*200,
+          y: window.innerHeight/3 + (Math.random()-0.5)*80,
+          vx: (Math.random()-0.5)*6,
+          vy: Math.random()*6 + 2,
+          size: Math.random()*8 + 4,
+          color: randomColor(),
+          rot: Math.random()*360,
+          rvel: (Math.random()-0.5)*12,
+          life: 0,
+          ttl: Math.random()*80 + 60
+        });
+      }
+      if(!confettiLoopId) confettiLoop();
+    }
+    function randomColor(){
+      const palette = ['#7C5CFF','#00D4FF','#3EE3A9','#FFB86B','#FF6B6B','#FFD166'];
+      return palette[Math.floor(Math.random()*palette.length)];
+    }
+    let confettiLoopId = null;
+    function confettiLoop(){
+      confettiLoopId = requestAnimationFrame(confettiLoop);
+      C.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
+      for(let i=confettiParticles.length-1;i>=0;i--){
+        const p = confettiParticles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.12; // gravity
+        p.rot += p.rvel;
+        p.life++;
+        const alpha = 1 - p.life / p.ttl;
+        C.save();
+        C.translate(p.x, p.y);
+        C.rotate(p.rot * Math.PI / 180);
+        C.fillStyle = hexToRgba(p.color, alpha);
+        C.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6);
+        C.restore();
+        if(p.y > confettiCanvas.height + 50 || p.life > p.ttl) confettiParticles.splice(i,1);
+      }
+      if(confettiParticles.length === 0){
+        cancelAnimationFrame(confettiLoopId);
+        confettiLoopId = null;
+      }
+    }
+    function hexToRgba(hex, a){
+      hex = hex.replace('#','');
+      const bigint = parseInt(hex,16);
+      const r = (bigint >> 16) & 255;
+      const g = (bigint >> 8) & 255;
+      const b = bigint & 255;
+      return `rgba(${r},${g},${b},${a})`;
+    }
+
+    // boot
+    function init(){
+      resetPool();
+      nextRound();
+      updateUI();
+    }
+
+    // start
+    init();
+
+    // accessibility: announce important changes
+    const liveRegion = document.createElement('div');
+    liveRegion.setAttribute('aria-live','polite');
+    liveRegion.style.position='absolute';
+    liveRegion.style.left='-9999px';
+    document.body.appendChild(liveRegion);
+
+    function announce(text){
+      liveRegion.textContent = text;
+    }
+
+    // small polish: update masked when reveal happens via hint button
+    const originalMaskedObserver = new MutationObserver(()=>{});
+    // ensure masked updates when revealedIndices changes (already updated in hint function)
+  </script>
+</body>
+</html>
